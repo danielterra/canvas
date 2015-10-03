@@ -1,0 +1,163 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Experiment</title>
+    <script>
+        var logos = [], can, ctx;
+
+        var LOGO_SIZE = 30;
+        var CANVAS_COLOR = '#FFF';
+        var CANVAS_SIZE_HEIGTH = window.innerHeight;
+        var CANVAS_SIZE_WIDTH = window.innerWidth;
+        var ACCELERATION = 1;
+
+        function clearCanvas() {
+            ctx.fillStyle = CANVAS_COLOR;
+            ctx.fillRect(0, 0, CANVAS_SIZE_WIDTH, CANVAS_SIZE_HEIGTH);
+        };
+
+        function addLogo() {
+            var url = document.getElementById('logoUrl').value;
+            var preview = document.getElementById('preview');
+
+            if (preview.firstChild) {
+                preview.removeChild(preview.firstChild);
+            };
+
+            // Create a image element to test if loads correctly.
+            var image = document.createElement('img');
+            image.src = url + "/favicon.ico";
+            preview.appendChild(image);
+
+            // If the image doesn't load correctly display a message.
+            image.onerror = function() {
+                if (preview.firstChild) {
+                    preview.removeChild(preview.firstChild);
+                };
+
+                preview.innerHTML = "Não existe favicon.ico";
+            }
+
+            // Add the logo if the image loads correctly.
+            image.onload = function() {
+                if (preview.firstChild) {
+                    preview.removeChild(preview.firstChild);
+                };
+                var logo = new Logo(url);
+                logos.push(logo);
+            };
+
+            // Prevent form to submit.
+            return false;
+        };
+
+        function animate(objects) {
+            // At every frame is necessary to cleanup.
+            clearCanvas();
+
+            // Paint all the logos.
+            for (var i = 0; i <= objects.length - 1; i++) {
+                renderLogo(objects[i]);
+            };
+        };
+
+        function Logo(url) {
+            this.img = new Image();
+            this.img.src = url + '/favicon.ico';
+
+            // Spaw logos at random positions.
+            this.pos = {
+                x: Math.floor((Math.random() * CANVAS_SIZE_WIDTH) + 1),
+                y: Math.floor((Math.random() * CANVAS_SIZE_HEIGTH) + 1)
+            };
+
+            // Speed in x and y axis.
+            this.aceleration = {
+                x: 1,
+                y: 1
+            };
+        };
+
+        // Paint the logo on the canvas.
+        function renderLogo(logo) {
+            //Detect if the logo has reached the canvas borders.
+            if (logo.pos.x >= CANVAS_SIZE_WIDTH - LOGO_SIZE) {
+                // change aceleration direction
+                logo.aceleration.x = -ACCELERATION;
+            }
+
+            if (logo.pos.y >= CANVAS_SIZE_HEIGTH - LOGO_SIZE) {
+                // change aceleration direction
+                logo.aceleration.y = -ACCELERATION;
+            }
+
+            if (logo.pos.x <= 0) {
+                // change aceleration direction
+                logo.aceleration.x = ACCELERATION;
+            }
+
+            if (logo.pos.y <= 0) {
+                // change aceleration direction
+                logo.aceleration.y = ACCELERATION;
+            }
+
+            // apply aceleration to coordinates.
+            logo.pos.x += logo.aceleration.x;
+            logo.pos.y += logo.aceleration.y;
+
+            // Draw on canvas
+            ctx.drawImage(logo.img, logo.pos.x, logo.pos.y, LOGO_SIZE, LOGO_SIZE);
+        };
+
+        window.onload = function () {
+            can = document.getElementById('canvas1');
+
+            CANVAS_SIZE_HEIGTH = window.innerHeight;
+            CANVAS_SIZE_WIDTH = window.innerWidth;
+
+            can.height = CANVAS_SIZE_HEIGTH;
+            can.width = CANVAS_SIZE_WIDTH;
+
+            ctx = can.getContext('2d');
+
+            clearCanvas();
+
+            // Animation interval
+            setInterval(function() {
+                if (logos.length > 0) {
+                    animate(logos);
+                }
+            }, 30);
+        };
+    </script>
+
+    <style>
+        canvas {
+            border: 1px solid gray;
+        }
+
+        #preview {
+            position: fixed;
+            left: 20px;
+            top: 45px;
+            font-size: 10px;
+            color: #F00;
+        }
+
+        form {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <form name="logo" onsubmit="return addLogo()">
+        <input id="logoUrl" type="text" placeholder="URL">
+        <button type="submit">Add</button>
+    </form>
+
+    <div id="preview"></div>
+    <canvas id="canvas1"></canvas>
+</body>
+</html>
